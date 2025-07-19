@@ -1,5 +1,7 @@
 # 🔐 Vaultica Password Manager
 
+<img width="1024" height="1024" alt="vaultica" src="https://github.com/user-attachments/assets/420a0a6b-cfc6-410e-8302-ac116808ee4f" />
+
 **Vaultica** es un gestor de contraseñas seguro y de código abierto, escrito en Python con interfaz gráfica (`Tkinter`) y cifrado avanzado con `cryptography.Fernet`.
 
 Diseñado para usuarios que valoran la seguridad, la simplicidad y el control total sobre sus datos.
