@@ -209,7 +209,7 @@ def login_user():
         return user
     else:
         messagebox.showerror("Error", "Contraseña incorrecta.")
-      return None
+        return None
       
 # --- GUI ---
 ensure_superuser()
