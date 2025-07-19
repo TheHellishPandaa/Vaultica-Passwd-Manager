@@ -103,3 +103,7 @@ Jaime Gálvez Martínez
 📅 Proyecto iniciado: diciembre de 2024
 
 **Muchas Gracias por usar Vaultica, y espero, que sirva de ayuda ;)**
+
+☕ ¿Te gusta el proyecto?
+
+**¡Dale una estrella ⭐ en GitHub y compártelo con otros!**
