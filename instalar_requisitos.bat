@@ -3,7 +3,7 @@
 :: Fecha: 19/07/2025
 :: Script para instalar dependencias del Gestor de Contraseñas en Windows
 
-echo 🔐 Instalador de requisitos para GNU-PasswdManager (Windows)
+echo Instalador de requisitos para GNU-PasswdManager (Windows)
 
 :: Paso 1: Verificar Python
 where python >nul 2>&1
@@ -16,7 +16,7 @@ if %errorlevel% neq 0 (
 :: Paso 2: Verificar pip
 python -m pip --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo ❌ pip no está instalado. Instalando pip...
+    echo pip no está instalado. Instalando pip...
     python -m ensurepip
 )
 
