@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Vaultica Password Manager for Linux, Windows & MacOS
 # Author: Jaime Galvez Martinez
-# Version: 1.0.1
-# DATE: 20/07/2025
+# Version: 1.0.2
+# DATE: 21/07/2025
 # Original Project: December 2024 as GNU-PasswdManager
 # LICENSE: GNU (General Public License)
 
@@ -16,6 +16,7 @@ import sys
 import random
 import string
 import bcrypt
+import re
 
 # --- Globals ---
 key = None
@@ -57,12 +58,12 @@ def setup_users_file(filename='users.json'):
 
 def ensure_superuser():
     if os.name != "nt" and os.geteuid() != 0:
-        print("Este script debe ejecutarse con privilegios de superusuario (sudo).")
+        print("Este programa debe ejecutarse con privilegios de superusuario (sudo).")
         sys.exit(1)
 
 # --- Theming ---
 def get_theme_colors():
-    return ("#121212", "#f0f0f0") if dark_mode else ("#f0f0f0", "#000000")
+    return ("#121213", "#f0f0f0") if dark_mode else ("#f0f0f0", "#000000")
 
 def apply_theme(widget, bg, fg):
     widget.configure(bg=bg)
@@ -82,7 +83,7 @@ def toggle_dark_mode():
 
 # --- Password Management ---
 def generate_password(user):
-    length = simpledialog.askinteger("Generar Contraseña", "Longitud (14-64):", minvalue=14, maxvalue=64)
+    length = simpledialog.askinteger("Generar Contraseña", "Longitud (14-128):", minvalue=14, maxvalue=128)
     if not length:
         return
     characters = string.ascii_letters + string.digits + string.punctuation
@@ -120,8 +121,8 @@ def save_passwords(user, passwords, filename='passwords.json'):
         json.dump(data, file, indent=4)
 
 def add_password(user):
-    service = simpledialog.askstring("Servicio", "Nombre del Servicio:")
-    service_user = simpledialog.askstring("Usuario", "Nombre de Usuario del Servicio:")
+    service = simpledialog.askstring("Servicio", "Nombre del Servicio:*")
+    service_user = simpledialog.askstring("Usuario", "Nombre del Usuario del Servicio:*")
     password = simpledialog.askstring("Contraseña", "Contraseña:", show='*')
     if not (service and service_user and password):
         messagebox.showerror("Error", "Todos los campos son obligatorios.")
@@ -200,19 +201,103 @@ def show_passwords(user):
     apply_theme(window, bg, fg)
 
 
-# --- Authentication ---
+# --- Testing Valid Password ---#
+
+def is_valid_password(pwd):
+    return (
+        len(pwd) >= 8 and
+        any(c.islower() for c in pwd) and
+        any(c.isupper() for c in pwd)
+    )
+
+# --- Autentication --- #
 def register_user():
-    user = simpledialog.askstring("Registro", "Nombre de usuario:")
+    user = simpledialog.askstring("Registro - La contraseña debe tener al menos 8 caracteres, una letra mayúscula y una minúscula","Nombre de usuario:")
     if not user or user in users:
         messagebox.showerror("Error", "Nombre inválido o ya existe.")
         return
-    password = simpledialog.askstring("Registro", "Contraseña:", show='*')
-    if not password:
+
+    password1 = simpledialog.askstring("Registro ", "Contraseña:", show='*')
+    if not password1:
         return
-    hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-    users[user] = {'password': hashed}
+
+    password2 = simpledialog.askstring("Registro", "Repite la Contraseña:", show='*')
+    if password2 != password1:
+        messagebox.showerror("Error", "La segunda contraseña no coincide.")
+        return
+
+    password3 = simpledialog.askstring("Registro", "Confirma la Contraseña por tercera vez:", show='*')
+    if password3 != password1:
+        messagebox.showerror("Error", "La tercera contraseña no coincide.")
+        return
+
+    if not is_valid_password(password1):
+        messagebox.showerror(
+            "Error de seguridad",
+            "La contraseña debe tener al menos 8 caracteres, una letra mayúscula y una minúscula."
+        )
+        return
+
+    # We force the configuration of security questions (required)
+    security_questions = get_security_questions()
+    if not security_questions:
+        messagebox.showerror("Error", "Debes completar todas las preguntas de seguridad para registrarte.")
+        return
+
+    hashed = bcrypt.hashpw(password1.encode(), bcrypt.gensalt()).decode()
+    users[user] = {
+        'password': hashed,
+        'security': security_questions
+    }
     save_data(users)
     messagebox.showinfo("Registro exitoso", "Usuario registrado correctamente.")
+
+def get_security_questions():
+    fixed_questions = [
+        "1/4 ¿En qué ciudad naciste?*",
+        "2/4 ¿Cuál es tu grupo de música favorito?*",
+        "3/4 ¿En qué pueblo / ciudad vivías a los 10 años?*",
+        "4/4 ¿Qué tipo de mascota tuviste primero (perro, gato, etc.)*?"
+    ]
+    
+    security_questions = []
+    respuestas_usadas = set()
+
+# ------- check security questions --------
+    for question in fixed_questions:
+        while True:
+            answer1 = simpledialog.askstring("Pregunta de seguridad (obligatorio)", f"{question} (Primera vez)", show='*')
+            if answer1 is None:
+                return None
+            answer2 = simpledialog.askstring("Pregunta de seguridad (obligatorio)", f"{question} (Confirma respuesta)", show='*')
+            if answer2 is None:
+                return None
+
+            answer1 = answer1.strip()
+            answer2 = answer2.strip()
+
+            if answer1 != answer2:
+                messagebox.showerror("Error", "Las respuestas no coinciden. Intenta de nuevo.")
+                continue
+
+            if not answer1:
+                messagebox.showerror("Error", "La respuesta no puede estar vacía.")
+                continue
+
+            normalized = answer1.lower()
+            if normalized in respuestas_usadas:
+                messagebox.showerror("Error", "Esta respuesta ya fue utilizada en otra pregunta. Debe ser diferente.")
+                continue
+
+            respuestas_usadas.add(normalized)
+            hashed_answer = bcrypt.hashpw(answer1.encode(), bcrypt.gensalt()).decode()
+            security_questions.append({
+                'question': question,
+                'answer': hashed_answer
+            })
+            break
+
+    return security_questions
 
 def login_user():
     user = simpledialog.askstring("Login", "Nombre de usuario:")
@@ -227,6 +312,57 @@ def login_user():
         messagebox.showerror("Error", "Contraseña incorrecta.")
         return None
 
+def reset_password():
+    user = simpledialog.askstring("Recuperar Contraseña", "Nombre de usuario:")
+    if not user or user not in users:
+        messagebox.showerror("Error", "Usuario no encontrado.")
+        return
+
+    # ------ Check if the user has security questions configured -------- #
+    if "security" not in users[user] or not users[user]["security"]:
+        response = messagebox.askyesno(
+            "Preguntas de seguridad no configuradas",
+            "Este usuario no tiene configuradas preguntas de seguridad.\n¿Deseas configurarlas ahora?"
+        )
+        if not response:
+            return
+
+        
+        new_security = get_security_questions()
+        if not new_security:
+            return  
+        users[user]["security"] = new_security
+        save_data(users)
+        messagebox.showinfo("Listo", "Preguntas de seguridad guardadas correctamente.\nPuedes intentar recuperar la contraseña ahora.")
+        return 
+
+    # ------ Validate questions --------
+    questions = users[user]["security"]
+    for qa in questions:
+        answer = simpledialog.askstring("Pregunta de Seguridad", qa['question'], show='*')
+        if not answer or not bcrypt.checkpw(answer.encode(), qa['answer'].encode()):
+            messagebox.showerror("Error", "Respuesta incorrecta.")
+            return
+
+    # Change Password ------
+    new_password = simpledialog.askstring("Nueva Contraseña", "Introduce la nueva contraseña:", show='*')
+    if not new_password:
+        return
+    confirm_password = simpledialog.askstring("Confirma Contraseña", "Vuelve a introducir la nueva contraseña:", show='*')
+
+    if new_password != confirm_password:
+        messagebox.showerror("Error", "Las contraseñas no coinciden.")
+        return
+    if not is_valid_password(new_password):
+        messagebox.showerror("Error", "La contraseña debe tener al menos 8 caracteres, una letra mayúscula y una letra minúscula.")
+        return
+
+    hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
+    users[user]['password'] = hashed
+    save_data(users)
+    messagebox.showinfo("Éxito", "La contraseña fue restablecida correctamente.")
+
+
 # --- GUI Setup ---
 ensure_superuser()
 setup_users_file()
@@ -234,8 +370,8 @@ key = load_key()
 users = load_data()
 
 root = tk.Tk()
-root.title("Vaultica PassworddManager")
-root.geometry("1200x800")
+root.title("Vaultica Password Manager")
+root.geometry("1600x900")
 root.configure(bg=get_theme_colors()[0])
 
 def open_login():
@@ -248,7 +384,7 @@ def show_panel(user):
     panel_frame = tk.Frame(root, bg=get_theme_colors()[0])
     panel_frame.pack(pady=20)
 
-    title = tk.Label(panel_frame, text="Vaultica-PasswordManager", font=("Arial Black", 42, "bold"))
+    title = tk.Label(panel_frame, text="Vaultica Password Manager", font=("Arial Black", 42, "bold"))
     title.pack(pady=10)
 
     tk.Button(panel_frame, text="Añadir Contraseña", command=lambda: add_password(user), width=30).pack(pady=5)
@@ -262,12 +398,21 @@ def show_panel(user):
 login_frame = tk.Frame(root, bg=get_theme_colors()[0])
 login_frame.pack(pady=20)
 
-login_btn = tk.Button(login_frame, text="Iniciar Sesión", command=open_login, width=26)
-login_btn.pack(pady=5)
-register_btn = tk.Button(login_frame, text="Registrar Usuario", command=register_user, width=26)
-register_btn.pack(pady=5)
+
+# ------ login panel ---------#
+login_btn = tk.Button(login_frame, text="Iniciar Sesión", command=open_login, width=32)
+login_btn.pack(pady=7)
+
+register_btn = tk.Button(login_frame, text="Registrar Usuario", command=register_user, width=32)
+register_btn.pack(pady=7)
+
+recover_btn = tk.Button(login_frame, text="¿Olvidaste tu contraseña?", command=reset_password, width=32)
+recover_btn.pack(pady=7)
+
+tk.Button(login_frame, text="Salir del Programa", command=root.quit, width=32).pack(pady=7)
+
+tk.Button(login_frame, text="Activar/Desactivar Modo Oscuro", command=toggle_dark_mode, width=32).pack(pady=7)
 
 apply_theme(login_frame, *get_theme_colors())
 
 root.mainloop()
-
