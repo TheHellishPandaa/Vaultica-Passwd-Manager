@@ -26,7 +26,8 @@ Diseñado para usuarios que valoran la seguridad, la simplicidad y el control to
 
 ## 🐧 Linux / MacOS
 
-    ⬇️ vaultica
+[Descargar Binario para Linux](https://github.com/TheHellishPandaa/vaultica/releases/download/linuxbin/vaultica)
+
 
 Para abrir el ejecutable: 
 ```
