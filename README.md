@@ -32,6 +32,7 @@ Diseñado para usuarios que valoran la seguridad, la simplicidad y el control to
 Para abrir el ejecutable: 
 ```
 cd Descargas
+chmod +x vaultica
 ./vaultica
 ```
 
@@ -46,9 +47,11 @@ Doble clic para ejecutar.
 
 Requisitos: Python 3.8+ y pip
 
+```
 git clone https://github.com/tu_usuario/vaultica.git
 cd vaultica
 python vaultica.py
+```
 
 📚 Dependencias
 
@@ -63,7 +66,7 @@ Instalación rápida:
 pip install cryptography bcrypt
 ```
 
-🚀 Cómo usar
+   ## 1.  🚀 Cómo usar
 
   ✅ Ejecuta Vaultica
 
