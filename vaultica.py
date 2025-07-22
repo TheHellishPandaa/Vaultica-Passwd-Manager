@@ -17,6 +17,16 @@ import random
 import string
 import bcrypt
 import re
+from PIL import Image, ImageTk
+
+def resource_path(relative_path):
+    
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 
 # --- Globals ---
 key = None
@@ -238,7 +248,7 @@ def register_user():
         )
         return
 
-    # We force the configuration of security questions (required)
+    # ------ We force the configuration of security questions (required) ------#
     security_questions = get_security_questions()
     if not security_questions:
         messagebox.showerror("Error", "Debes completar todas las preguntas de seguridad para registrarte.")
@@ -254,10 +264,9 @@ def register_user():
 
 def get_security_questions():
     fixed_questions = [
-        "1/4 ¿En qué ciudad naciste?*",
-        "2/4 ¿Cuál es tu grupo de música favorito?*",
-        "3/4 ¿En qué pueblo / ciudad vivías a los 10 años?*",
-        "4/4 ¿Qué tipo de mascota tuviste primero (perro, gato, etc.)*?"
+        "1/3 ¿En qué ciudad naciste?*",
+        "2/3 ¿Cuál es tu grupo de música favorito?*",
+        "3/3 ¿En qué pueblo / ciudad vivías a los 10 años?*",
     ]
     
     security_questions = []
@@ -397,6 +406,21 @@ def show_panel(user):
 
 login_frame = tk.Frame(root, bg=get_theme_colors()[0])
 login_frame.pack(pady=20)
+
+# ----- Upload Icon -------#
+try:
+    icon_path = resource_path("vaultica_icon_128_nobg.png")
+    icon_img = Image.open(icon_path).resize((96, 96), Image.Resampling.LANCZOS)
+    icon_photo = ImageTk.PhotoImage(icon_img)
+    icon_label = tk.Label(login_frame, image=icon_photo, bg=get_theme_colors()[0])
+    icon_label.image = icon_photo  
+    icon_label.pack(pady=10)
+except Exception as e:
+    print(f"Error al cargar el ícono: {e}")
+
+# ------ Main Title --------#
+title_label = tk.Label(login_frame, text="Vaultica Password Manager", font=("Arial Black", 42, "bold"))
+title_label.pack(pady=10)
 
 
 # ------ login panel ---------#
