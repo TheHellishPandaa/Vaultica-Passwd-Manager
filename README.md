@@ -38,7 +38,8 @@ chmod +x vaultica
 
 ## 🪟 Windows 10 / 11
 
-   ⬇️ Proximamente ....
+   ⬇️ [Descargar ejecutable para Windows](https://github.com/TheHellishPandaa/vaultica/releases/download/windows/vaultica.exe)
+
 
 Doble clic para ejecutar.
 
