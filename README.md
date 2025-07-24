@@ -33,7 +33,7 @@ Para abrir el ejecutable:
 ```
 cd Descargas
 chmod +x vaultica
-./vaultica
+sudo ./vaultica
 ```
 
 ## 🪟 Windows 10 / 11
@@ -120,3 +120,5 @@ Jaime Gálvez Martínez
 **¡Dale una estrella ⭐ en GitHub y compártelo con otros!**
 
 **PROXIMAMENTE... Sitio de Descargas**
+
+**Gracias**
