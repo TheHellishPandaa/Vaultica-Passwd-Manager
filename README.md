@@ -49,7 +49,7 @@ Doble clic para ejecutar.
 Requisitos: Python 3.8+ y pip
 
 ```
-git clone https://github.com/tu_usuario/vaultica.git
+git clone https://github.com/TheHellishPandaa/vaultica.git
 cd vaultica
 python vaultica.py
 ```
